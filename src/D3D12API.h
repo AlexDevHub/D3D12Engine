@@ -28,7 +28,7 @@ public:
     void Update() override;
     HRESULT Shutdown() override;
 
-    void LoadPipeline();
+    void LoadPipeline(int screenWidth, int screenHeight, HWND hwnd);
 
     void BeginScene(float red, float green, float blue, float alpha);
     void EndScene();
