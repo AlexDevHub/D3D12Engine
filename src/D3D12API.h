@@ -24,11 +24,12 @@ class D3D12API : public System {
 public:
 
     HRESULT Init() override;
-    HRESULT Init(int screenWidth, int screenHeight, bool vsync, bool fullscreen, float screenDepth, float screenNear);
+    HRESULT Init(int screenWidth, int screenHeight, bool vsync, HWND hwnd, bool fullscreen, float screenDepth, float screenNear);
     void Update() override;
     HRESULT Shutdown() override;
 
     void LoadPipeline(int screenWidth, int screenHeight, HWND hwnd);
+    void LoadAssets();
 
     void BeginScene(float red, float green, float blue, float alpha);
     void EndScene();
@@ -71,6 +72,8 @@ private:
     ComPtr<ID3D12GraphicsCommandList> m_commandList;
     ComPtr<ID3D12CommandAllocator> m_commandAllocators[g_NumFrames];
     ComPtr<ID3D12DescriptorHeap> m_RTVDescriptorHeap;
+    ComPtr<ID3D12DescriptorHeap> m_DSVDescriptorHeap;
+    ComPtr<ID3D12DescriptorHeap> m_CBVSrvDescriptorHeap;
     UINT m_RTVDescriptorSize;
     UINT m_currentBackBufferIndex;
 

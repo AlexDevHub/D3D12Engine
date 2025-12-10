@@ -12,12 +12,14 @@ HRESULT D3D12Engine::D3D12API::Init() {
     return S_OK;
 }
 
-HRESULT D3D12Engine::D3D12API::Init(int screen_width, int screen_height, bool vsync, bool is_fullscreen, float screen_depth, float screen_near) {
+HRESULT D3D12Engine::D3D12API::Init(int screen_width, int screen_height, bool vsync, HWND hwnd, bool is_fullscreen, float screen_depth, float screen_near) {
 
     // Store the vsync setting
     m_vsync_enabled = vsync;
 
-    LoadPipeline();
+    LoadPipeline(screen_width, screen_height, hwnd);
+
+    LoadAssets();
 
     // Use the factory to create an adapter for the primary graphics interface (video card).
     ComPtr<IDXGIAdapter> adapter;
@@ -66,74 +68,6 @@ HRESULT D3D12Engine::D3D12API::Init(int screen_width, int screen_height, bool vs
 
     // Convert the name of the video card to a character array and store it.
     m_videoCardDescription = std::move(std::wstring(adapterDesc.Description));
-
-    // Release the display mode list.
-
-    // Initialize the swap chain description.
-    DXGI_SWAP_CHAIN_DESC swapChainDesc;
-    ZeroMemory(&swapChainDesc, sizeof(swapChainDesc));
-
-    // Set to a single back buffer.
-    swapChainDesc.BufferCount = 1;
-
-    // Set the width and height of the back buffer.
-    swapChainDesc.BufferDesc.Width = screen_width;
-    swapChainDesc.BufferDesc.Height = screen_height;
-
-    // Set regular 32-bit surface for the back buffer.
-    swapChainDesc.BufferDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-
-    // Set the refresh rate of the back buffer.
-    swapChainDesc.BufferDesc.RefreshRate.Numerator = m_vsync_enabled ? numerator : 0;
-    swapChainDesc.BufferDesc.RefreshRate.Denominator = m_vsync_enabled ? denominator : 1;
-
-    // Set the usage of the back buffer.
-    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-
-    // Set the handle for the window to render to.
-    swapChainDesc.OutputWindow = hwnd;
-
-    // Turn multisampling off.
-    swapChainDesc.SampleDesc.Count = 1;
-    swapChainDesc.SampleDesc.Quality = 0;
-
-    // Set to full screen or windowed mode.
-    swapChainDesc.Windowed = !is_fullscreen;
-
-    // Set the scan line ordering and scaling to unspecified.
-    swapChainDesc.BufferDesc.ScanlineOrdering = DXGI_MODE_SCANLINE_ORDER_UNSPECIFIED;
-    swapChainDesc.BufferDesc.Scaling = DXGI_MODE_SCALING_UNSPECIFIED;
-
-    // Discard the back buffer contents after presenting.
-    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_DISCARD;
-
-    // Don't set the advanced flags.
-    swapChainDesc.Flags = 0;
-
-    // Set the feature level to DirectX 11.
-    D3D_FEATURE_LEVEL featureLevel = D3D_FEATURE_LEVEL_11_0;
-
-    unsigned int flags = 0;
-
-#if defined(_DEBUG)
-    flags |= D3D12_CREATE_DEVICE_DEBUG;
-#endif
-
-    // Create the swap chain, Direct3D device, and Direct3D device context.
-    RETURN_FAIL_IF_FAILED(
-        D3D12CreateDeviceAndSwapChain(
-            nullptr,
-            D3D_DRIVER_TYPE_HARDWARE,
-            nullptr,
-            flags,
-            &featureLevel,
-            1,
-            D3D12_SDK_VERSION,
-            &swapChainDesc,
-            &m_swapChain,
-            &m_device,
-            nullptr,
-            &m_deviceContext))
 
 
     // Get the pointer to the back buffer.
@@ -267,7 +201,7 @@ HRESULT D3D12Engine::D3D12API::Shutdown() {
     return S_OK;
 }
 
-HRESULT D3D12Engine::D3D12API::LoadPipeline(int screenWidth, int screenHeight, bool vsync, HWND hwnd, bool fullscreen, float screenDepth, float screenNear) {
+void D3D12Engine::D3D12API::LoadPipeline(int screenWidth, int screenHeight, HWND hwnd) {
     UINT dxgiFactoryFlags = 0;
 
 #if defined(_DEBUG)
@@ -348,15 +282,53 @@ HRESULT D3D12Engine::D3D12API::LoadPipeline(int screenWidth, int screenHeight, b
     {
         // Describe and create a render target view (RTV) descriptor heap.
         D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
-        rtvHeapDesc.NumDescriptors = FrameCount;
+        rtvHeapDesc.NumDescriptors = g_NumFrames;
         rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
         rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-        ThrowIfFailed(m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
+        ThrowIfFailed(m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_RTVDescriptorHeap)));
 
-        m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        // Describe and create a depth stencil view (DSV) descriptor heap.
+        // Each frame has its own depth stencils (to write shadows onto) 
+        // and then there is one for the scene itself.
+        D3D12_DESCRIPTOR_HEAP_DESC dsvHeapDesc = {};
+        dsvHeapDesc.NumDescriptors = 1 + g_NumFrames;
+        dsvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+        dsvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        ThrowIfFailed(m_device->CreateDescriptorHeap(&dsvHeapDesc, IID_PPV_ARGS(&m_DSVDescriptorHeap)));
+
+        // Describe and create a shader resource view (SRV) and constant 
+        // buffer view (CBV) descriptor heap.  Heap layout: null views, 
+        // object diffuse + normal textures views, frame 1's shadow buffer, 
+        // frame 1's 2x constant buffer, frame 2's shadow buffer, frame 2's 
+        // 2x constant buffers, etc...
+        const UINT nullSrvCount = 2;        // Null descriptors are needed for out of bounds behavior reads.
+        const UINT cbvCount = g_NumFrames * 2;
+        const UINT srvCount = _countof(SampleAssets::Textures) + g_NumFrames;
+        D3D12_DESCRIPTOR_HEAP_DESC cbvSrvHeapDesc = {};
+        cbvSrvHeapDesc.NumDescriptors = nullSrvCount + cbvCount + srvCount;
+        cbvSrvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        cbvSrvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        ThrowIfFailed(m_device->CreateDescriptorHeap(&cbvSrvHeapDesc, IID_PPV_ARGS(&m_CBVSrvDescriptorHeap)));
+        NAME_D3D12_OBJECT(m_CBVSrvDescriptorHeap);
+
+        m_RTVDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
     }
 
+    ThrowIfFailed(m_device->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_commandAllocator)));
 
+}
+
+void D3D12Engine::D3D12API::LoadAssets() {
+    // Create an empty root signature.
+    {
+        CD3DX12_ROOT_SIGNATURE_DESC rootSignatureDesc;
+        rootSignatureDesc.Init(0, nullptr, 0, nullptr, D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+
+        ComPtr<ID3DBlob> signature;
+        ComPtr<ID3DBlob> error;
+        ThrowIfFailed(D3D12SerializeRootSignature(&rootSignatureDesc, D3D_ROOT_SIGNATURE_VERSION_1, &signature, &error));
+        ThrowIfFailed(m_device->CreateRootSignature(0, signature->GetBufferPointer(), signature->GetBufferSize(), IID_PPV_ARGS(&m_rootSignature)));
+    }
 }
 
 void D3D12Engine::D3D12API::BeginScene(float red, float green, float blue, float alpha) {
