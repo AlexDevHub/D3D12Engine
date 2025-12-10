@@ -3,7 +3,7 @@
 //
 
 #include "InputSystem.h"
-namespace D3D11Engine {
+namespace D3D12Engine {
 HRESULT InputSystem::Init() {
     return S_OK;
 }
@@ -72,4 +72,4 @@ void InputSystem::key_processing(GLFWwindow* window, int key, int scancode, int 
     m_camera->SetRotation(rot.x, rot.y, rot.z);
 
 }
-} // D3D11Engine
+} // D3D12Engine

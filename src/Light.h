@@ -6,7 +6,7 @@
 #define LIGHT_H
 
 #include "pch.hpp"
-namespace D3D11Engine {
+namespace D3D12Engine {
 class Light {
 public:
     Light() = default;
@@ -24,6 +24,6 @@ private:
     XMFLOAT3 m_direction;
 };
 
-} // D3D11Engine
+} // D3D12Engine
 
 #endif //LIGHT_H

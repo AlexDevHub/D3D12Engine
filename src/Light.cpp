@@ -4,7 +4,7 @@
 
 #include "Light.h"
 
-namespace D3D11Engine {
+namespace D3D12Engine {
 void Light::SetDiffuseColor(float red, float green, float blue, float alpha) {
     m_diffuseColor = XMFLOAT4(red, green, blue, alpha);
 }
@@ -20,4 +20,4 @@ XMFLOAT4 Light::GetDiffuseColor() {
 XMFLOAT3 Light::GetDirection() {
     return m_direction;
 }
-} // D3D11Engine
+} // D3D12Engine

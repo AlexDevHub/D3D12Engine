@@ -12,7 +12,7 @@
 
 using namespace DirectX;
 
-namespace D3D11Engine {
+namespace D3D12Engine {
 class Model {
 private:
     struct VertexType
@@ -35,32 +35,32 @@ public:
     Model(const Model&) = default;
     ~Model() = default;
 
-    HRESULT Initialize(ID3D11Device *device, ID3D11DeviceContext *device_context, const std::string& texture_filename);
+    HRESULT Initialize(ID3D12Device *device, ID3D12DeviceContext *device_context, const std::string& texture_filename);
     void Shutdown();
-    void Render(ID3D11DeviceContext* device_context);
+    void Render(ID3D12DeviceContext* device_context);
 
     int GetIndexCount() const;
 
-    ID3D11ShaderResourceView* GetTexture() const;
+    ID3D12ShaderResourceView* GetTexture() const;
 
 private:
     HRESULT LoadModel();
-    HRESULT InitializeBuffers(ID3D11Device *device);
+    HRESULT InitializeBuffers(ID3D12Device *device);
     void ShutdownBuffers();
-    void RenderBuffers(ID3D11DeviceContext *device_context);
+    void RenderBuffers(ID3D12DeviceContext *device_context);
 
-    HRESULT LoadTexture(ID3D11Device* device, ID3D11DeviceContext* device_context, const std::string& filename);
+    HRESULT LoadTexture(ID3D12Device* device, ID3D12DeviceContext* device_context, const std::string& filename);
     void ReleaseTexture();
 
 private:
-    ComPtr<ID3D11Buffer> m_vertexBuffer;
-    ComPtr<ID3D11Buffer> m_indexBuffer;
+    ComPtr<ID3D12Buffer> m_vertexBuffer;
+    ComPtr<ID3D12Buffer> m_indexBuffer;
     int m_vertexCount, m_indexCount;
     std::unique_ptr<Texture> m_texture;
     std::vector<ModelType> m_model;
 
 };
 
-} // D3D11Engine
+} // D3D12Engine
 
 #endif //MODEL_H

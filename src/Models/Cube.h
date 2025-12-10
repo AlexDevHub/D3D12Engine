@@ -5,12 +5,12 @@
 #ifndef CUBE_H
 #define CUBE_H
 
-namespace D3D11Engine {
+namespace D3D12Engine {
 
 class Cube {
 
 };
 
-} // D3D11Engine
+} // D3D12Engine
 
 #endif //CUBE_H

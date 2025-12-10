@@ -106,6 +106,8 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -130,9 +132,50 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Application.cpp" />
+    <ClCompile Include="src\Camera.cpp" />
+    <ClCompile Include="src\InputSystem.cpp" />
+    <ClCompile Include="src\Light.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\Models\Cube.cpp" />
+    <ClCompile Include="src\Models\Model.cpp" />
+    <ClCompile Include="src\Shaders\ColorShader.cpp" />
+    <ClCompile Include="src\Shaders\LightShader.cpp" />
+    <ClCompile Include="src\Shaders\Shader.cpp" />
+    <ClCompile Include="src\Shaders\TextureShader.cpp" />
+    <ClCompile Include="src\Texture.cpp" />
+    <ClCompile Include="src\Window.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="src\Application.h" />
+    <ClInclude Include="src\Camera.h" />
+    <ClInclude Include="src\D3D12API.h" />
+    <ClInclude Include="src\InputSystem.h" />
+    <ClInclude Include="src\Light.h" />
+    <ClInclude Include="src\Models\Cube.h" />
+    <ClInclude Include="src\Models\CubeData.h" />
+    <ClInclude Include="src\Models\Model.h" />
+    <ClInclude Include="src\pch.hpp" />
+    <ClInclude Include="src\Shaders\ColorShader.h" />
+    <ClInclude Include="src\Shaders\LightShader.h" />
+    <ClInclude Include="src\Shaders\pch.hpp" />
+    <ClInclude Include="src\Shaders\Shader.h" />
+    <ClInclude Include="src\Shaders\TextureShader.h" />
+    <ClInclude Include="src\STB\stb_image.h" />
+    <ClInclude Include="src\System.h" />
+    <ClInclude Include="src\Texture.h" />
+    <ClInclude Include="src\Timer.h" />
+    <ClInclude Include="src\Utils\Error.h" />
+    <ClInclude Include="src\Window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="Assets\Textures\stone01.tga" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
     <Import Project="packages\Microsoft.Direct3D.D3D12.1.618.5\build\native\Microsoft.Direct3D.D3D12.targets" Condition="Exists('packages\Microsoft.Direct3D.D3D12.1.618.5\build\native\Microsoft.Direct3D.D3D12.targets')" />
+    <Import Project="packages\glfw.3.4.0\build\native\glfw.targets" Condition="Exists('packages\glfw.3.4.0\build\native\glfw.targets')" />
   </ImportGroup>
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
@@ -140,5 +183,6 @@
     </PropertyGroup>
     <Error Condition="!Exists('packages\Microsoft.Direct3D.D3D12.1.618.5\build\native\Microsoft.Direct3D.D3D12.props')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Direct3D.D3D12.1.618.5\build\native\Microsoft.Direct3D.D3D12.props'))" />
     <Error Condition="!Exists('packages\Microsoft.Direct3D.D3D12.1.618.5\build\native\Microsoft.Direct3D.D3D12.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\Microsoft.Direct3D.D3D12.1.618.5\build\native\Microsoft.Direct3D.D3D12.targets'))" />
+    <Error Condition="!Exists('packages\glfw.3.4.0\build\native\glfw.targets')" Text="$([System.String]::Format('$(ErrorText)', 'packages\glfw.3.4.0\build\native\glfw.targets'))" />
   </Target>
 </Project>

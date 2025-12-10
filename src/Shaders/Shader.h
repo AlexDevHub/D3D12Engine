@@ -7,7 +7,7 @@
 
 #include "pch.hpp"
 
-namespace D3D11Engine {
+namespace D3D12Engine {
 class Shader {
 protected:
     struct MatrixBufferType
@@ -28,26 +28,26 @@ public:
     virtual ~Shader() = default;
 
 protected:
-    virtual HRESULT InitializeShader(ID3D11Device *device, HWND hwnd, std::wstring& shader_filename);
-    virtual HRESULT SetShaderParameters(ID3D11DeviceContext *device_context, XMMATRIX world_matrix, XMMATRIX view_matrix,
+    virtual HRESULT InitializeShader(ID3D12Device *device, HWND hwnd, std::wstring& shader_filename);
+    virtual HRESULT SetShaderParameters(ID3D12DeviceContext *device_context, XMMATRIX world_matrix, XMMATRIX view_matrix,
                                 XMMATRIX projection_matrix);
-    virtual void RenderShader(ID3D11DeviceContext *device_context, int index_count);
+    virtual void RenderShader(ID3D12DeviceContext *device_context, int index_count);
     void OutputShaderErrorMessage(ID3D10Blob *error_message, HWND hwnd, std::wstring &shader_filename);
 
 private:
-    HRESULT UpdateTime(ID3D11DeviceContext *device_context);
+    HRESULT UpdateTime(ID3D12DeviceContext *device_context);
 
 protected:
-    ComPtr<ID3D11VertexShader> m_vertexShader;
-    ComPtr<ID3D11PixelShader> m_pixelShader;
-    ComPtr<ID3D11InputLayout> m_layout;
-    ComPtr<ID3D11Buffer> m_matrixBuffer;
-    ComPtr<ID3D11Buffer> m_timeBuffer;
-    ComPtr<ID3D11SamplerState> m_sampleState;
-    ComPtr<ID3D11Buffer> m_lightBuffer;
+    ComPtr<ID3D12VertexShader> m_vertexShader;
+    ComPtr<ID3D12PixelShader> m_pixelShader;
+    ComPtr<ID3D12InputLayout> m_layout;
+    ComPtr<ID3D12Buffer> m_matrixBuffer;
+    ComPtr<ID3D12Buffer> m_timeBuffer;
+    ComPtr<ID3D12SamplerState> m_sampleState;
+    ComPtr<ID3D12Buffer> m_lightBuffer;
 
 };
 
-} // D3D11Engine
+} // D3D12Engine
 
 #endif //SHADER_H

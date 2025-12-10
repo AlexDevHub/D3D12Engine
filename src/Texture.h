@@ -5,7 +5,9 @@
 #ifndef TEXTURE_H
 #define TEXTURE_H
 
-namespace D3D11Engine {
+#include "pch.hpp"
+
+namespace D3D12Engine {
 
 class Texture {
 private:
@@ -23,9 +25,9 @@ public:
     Texture(const Texture&) = default;
     ~Texture();
 
-    HRESULT Initialize(ID3D11Device* device, ID3D11DeviceContext* device_context, const std::string& filename);
+    HRESULT Initialize(ID3D12Device* device, ID3D12DeviceContext* device_context, const std::string& filename);
 
-    ID3D11ShaderResourceView* GetTexture();
+    ID3D12ShaderResourceView* GetTexture();
 
     int GetWidth() const;
     int GetHeight() const;
@@ -35,11 +37,11 @@ private:
 
 private:
     unsigned char* m_targaData = nullptr;
-    ComPtr<ID3D11Texture2D> m_texture;
-    ComPtr<ID3D11ShaderResourceView> m_textureView;
+    ComPtr<ID3D12Texture2D> m_texture;
+    ComPtr<ID3D12ShaderResourceView> m_textureView;
     int m_width = 0, m_height = 0, m_channels = 0;
 };
 
-} // D3D11Engine
+} // D3D12Engine
 
 #endif //TEXTURE_H

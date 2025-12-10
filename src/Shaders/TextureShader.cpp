@@ -4,16 +4,16 @@
 
 #include "TextureShader.h"
 
-namespace D3D11Engine {
-HRESULT TextureShader::Initialize(ID3D11Device* device, HWND hwnd) {
+namespace D3D12Engine {
+HRESULT TextureShader::Initialize(ID3D12Device* device, HWND hwnd) {
     std::wstring shader_filename (L"Assets/Shaders/texture.hlsl");
 
     InitializeShader(device, hwnd, shader_filename);
     return S_OK;
 }
 
-HRESULT TextureShader::Render(ID3D11DeviceContext *deviceContext, int indexCount, XMMATRIX worldMatrix,
-    XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D11ShaderResourceView *texture) {
+HRESULT TextureShader::Render(ID3D12DeviceContext *deviceContext, int indexCount, XMMATRIX worldMatrix,
+    XMMATRIX viewMatrix, XMMATRIX projectionMatrix, ID3D12ShaderResourceView *texture) {
     RETURN_FAIL_IF_FAILED(SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix, texture))
 
     RenderShader(deviceContext, indexCount);
@@ -21,7 +21,7 @@ HRESULT TextureShader::Render(ID3D11DeviceContext *deviceContext, int indexCount
     return S_OK;
 }
 
-HRESULT TextureShader::SetShaderParameters(ID3D11DeviceContext *device_context, XMMATRIX world_matrix, XMMATRIX view_matrix, XMMATRIX projection_matrix, ID3D11ShaderResourceView* texture) {
+HRESULT TextureShader::SetShaderParameters(ID3D12DeviceContext *device_context, XMMATRIX world_matrix, XMMATRIX view_matrix, XMMATRIX projection_matrix, ID3D12ShaderResourceView* texture) {
     // Initialize matrix
     Shader::SetShaderParameters(device_context, world_matrix, view_matrix, projection_matrix);
 
@@ -30,7 +30,7 @@ HRESULT TextureShader::SetShaderParameters(ID3D11DeviceContext *device_context, 
     return S_OK;
 }
 
-void TextureShader::RenderShader(ID3D11DeviceContext *device_context, int index_count) {
+void TextureShader::RenderShader(ID3D12DeviceContext *device_context, int index_count) {
 
     // Set the vertex input layout.
     device_context->IASetInputLayout(m_layout.Get());
@@ -45,4 +45,4 @@ void TextureShader::RenderShader(ID3D11DeviceContext *device_context, int index_
     // Render the triangle.
     device_context->DrawIndexed(index_count, 0, 0);
 }
-} // D3D11Engine
+} // D3D12Engine

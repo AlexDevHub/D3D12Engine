@@ -7,7 +7,7 @@
 
 #include "pch.hpp"
 
-namespace D3D11Engine {
+namespace D3D12Engine {
 class System {
 public:
     virtual ~System() = default;
@@ -16,7 +16,7 @@ public:
     virtual void Update() = 0;
     virtual HRESULT Shutdown() = 0;
 };
-} // namespace D3D11Engine
+} // namespace D3D12Engine
 
 
 

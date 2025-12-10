@@ -4,8 +4,8 @@
 
 #include "ColorShader.h"
 
-namespace D3D11Engine {
-HRESULT ColorShader::Initialize(ID3D11Device *device, HWND hwnd) {
+namespace D3D12Engine {
+HRESULT ColorShader::Initialize(ID3D12Device *device, HWND hwnd) {
 
     std::wstring shader_filename (L"Assets/Shaders/color.hlsl");
 
@@ -14,7 +14,7 @@ HRESULT ColorShader::Initialize(ID3D11Device *device, HWND hwnd) {
     return S_OK;
 }
 
-HRESULT ColorShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix,
+HRESULT ColorShader::Render(ID3D12DeviceContext* deviceContext, int indexCount, XMMATRIX worldMatrix, XMMATRIX viewMatrix,
                               XMMATRIX projectionMatrix) {
     RETURN_FAIL_IF_FAILED(SetShaderParameters(deviceContext, worldMatrix, viewMatrix, projectionMatrix))
     RenderShader(deviceContext, indexCount);
@@ -22,7 +22,7 @@ HRESULT ColorShader::Render(ID3D11DeviceContext* deviceContext, int indexCount, 
     return S_OK;
 }
 
-HRESULT ColorShader::SetShaderParameters(ID3D11DeviceContext *device_context, XMMATRIX world_matrix,
+HRESULT ColorShader::SetShaderParameters(ID3D12DeviceContext *device_context, XMMATRIX world_matrix,
     XMMATRIX view_matrix, XMMATRIX projection_matrix) {
     // Transpose the matrices to prepare them for the shader.
     world_matrix = XMMatrixTranspose(world_matrix);
@@ -30,8 +30,8 @@ HRESULT ColorShader::SetShaderParameters(ID3D11DeviceContext *device_context, XM
     projection_matrix = XMMatrixTranspose(projection_matrix);
 
     // Lock the constant buffer so it can be written to.
-    D3D11_MAPPED_SUBRESOURCE mappedResource = {};
-    RETURN_FAIL_IF_FAILED(device_context->Map(m_matrixBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))
+    D3D12_MAPPED_SUBRESOURCE mappedResource = {};
+    RETURN_FAIL_IF_FAILED(device_context->Map(m_matrixBuffer.Get(), 0, D3D12_MAP_WRITE_DISCARD, 0, &mappedResource))
 
     // Get a pointer to the data in the constant buffer.
     MatrixBufferType* dataPtr = static_cast<MatrixBufferType *>(mappedResource.pData);
@@ -53,7 +53,7 @@ HRESULT ColorShader::SetShaderParameters(ID3D11DeviceContext *device_context, XM
     return S_OK;
 }
 
-void ColorShader::RenderShader(ID3D11DeviceContext *device_context, int index_count) {
+void ColorShader::RenderShader(ID3D12DeviceContext *device_context, int index_count) {
     // Set the vertex input layout.
     device_context->IASetInputLayout(m_layout.Get());
 
@@ -64,4 +64,4 @@ void ColorShader::RenderShader(ID3D11DeviceContext *device_context, int index_co
     // Render the triangle.
     device_context->DrawIndexed(index_count, 0, 0);
 }
-} // D3D11Engine
+} // D3D12Engine

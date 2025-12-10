@@ -10,7 +10,7 @@
 
 using namespace DirectX;
 
-namespace D3D11Engine {
+namespace D3D12Engine {
 
 class Camera {
 public:
@@ -33,6 +33,6 @@ private:
     XMMATRIX m_viewMatrix = {};
 };
 
-} // D3D11Engine
+} // D3D12Engine
 
 #endif //CAMERA_H

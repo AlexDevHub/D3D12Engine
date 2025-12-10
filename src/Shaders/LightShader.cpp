@@ -4,16 +4,16 @@
 
 #include "LightShader.h"
 #include "../Application.h"
-namespace D3D11Engine {
-HRESULT LightShader::Initialize(ID3D11Device *device, HWND hwnd) {
+namespace D3D12Engine {
+HRESULT LightShader::Initialize(ID3D12Device *device, HWND hwnd) {
     std::wstring shader_filename (L"Assets/Shaders/light.hlsl");
     RETURN_FAIL_IF_FAILED(Shader::InitializeShader(device, hwnd, shader_filename))
 
     return S_OK;
 }
 
-HRESULT LightShader::Render(ID3D11DeviceContext *device_context, int index_count, XMMATRIX world_matrix,
-    XMMATRIX view_matrix, XMMATRIX projection_matrix, ID3D11ShaderResourceView *texture, XMFLOAT3 light_direction,
+HRESULT LightShader::Render(ID3D12DeviceContext *device_context, int index_count, XMMATRIX world_matrix,
+    XMMATRIX view_matrix, XMMATRIX projection_matrix, ID3D12ShaderResourceView *texture, XMFLOAT3 light_direction,
     XMFLOAT4 diffuse_color) {
     RETURN_FAIL_IF_FAILED(
         SetShaderParameters(
@@ -31,17 +31,17 @@ HRESULT LightShader::Render(ID3D11DeviceContext *device_context, int index_count
     return S_OK;
 }
 
-HRESULT LightShader::SetShaderParameters(ID3D11DeviceContext *device_context, int index_count, XMMATRIX world_matrix,
-    XMMATRIX view_matrix, XMMATRIX projection_matrix, ID3D11ShaderResourceView *texture, XMFLOAT3 light_direction,
+HRESULT LightShader::SetShaderParameters(ID3D12DeviceContext *device_context, int index_count, XMMATRIX world_matrix,
+    XMMATRIX view_matrix, XMMATRIX projection_matrix, ID3D12ShaderResourceView *texture, XMFLOAT3 light_direction,
     XMFLOAT4 diffuse_color) {
     RETURN_FAIL_IF_FAILED(Shader::SetShaderParameters(device_context, world_matrix, view_matrix, projection_matrix))
 
-    D3D11_MAPPED_SUBRESOURCE mappedResource;
+    D3D12_MAPPED_SUBRESOURCE mappedResource;
     // Set shader texture resource in the pixel shader.
     device_context->PSSetShaderResources(0, 1, &texture);
 
     // Lock the light constant buffer so it can be written to.
-    RETURN_FAIL_IF_FAILED(device_context->Map(m_lightBuffer.Get(), 0, D3D11_MAP_WRITE_DISCARD, 0, &mappedResource))
+    RETURN_FAIL_IF_FAILED(device_context->Map(m_lightBuffer.Get(), 0, D3D12_MAP_WRITE_DISCARD, 0, &mappedResource))
 
     // Get a pointer to the data in the constant buffer.
     LightBufferType *dataPtr2 = static_cast<LightBufferType *>(mappedResource.pData);
@@ -63,7 +63,7 @@ HRESULT LightShader::SetShaderParameters(ID3D11DeviceContext *device_context, in
     return S_OK;
 }
 
-void LightShader::RenderShader(ID3D11DeviceContext *device_context, int index_count) {
+void LightShader::RenderShader(ID3D12DeviceContext *device_context, int index_count) {
     Shader::RenderShader(device_context, index_count);
 }
-} // D3D11Engine
+} // D3D12Engine

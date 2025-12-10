@@ -10,7 +10,7 @@
 #include "Camera.h"
 #include "pch.hpp"
 
-namespace D3D11Engine {
+namespace D3D12Engine {
 
 class InputSystem : System {
 public:
@@ -26,6 +26,6 @@ private:
     inline static Camera* m_camera = nullptr;
 };
 
-} // D3D11Engine
+} // D3D12Engine
 
 #endif //INPUTSYSTEM_H

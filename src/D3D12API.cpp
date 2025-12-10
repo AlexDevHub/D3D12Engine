@@ -2,24 +2,22 @@
 // Created by xande on 6/9/2025.
 //
 
-#include "D3D11API.h"
+#include "D3D12API.h"
 // #include <vector>
 
 #define IID_PPV_ARGS(ppType) __uuidof(**(ppType)), IID_PPV_ARGS_Helper(ppType)
 
 
-HRESULT D3D11Engine::D3D11API::Init() {
+HRESULT D3D12Engine::D3D12API::Init() {
     return S_OK;
 }
 
-HRESULT D3D11Engine::D3D11API::Init(int screen_width, int screen_height, bool vsync, HWND hwnd, bool is_fullscreen, float screen_depth, float screen_near) {
+HRESULT D3D12Engine::D3D12API::Init(int screen_width, int screen_height, bool vsync, bool is_fullscreen, float screen_depth, float screen_near) {
 
     // Store the vsync setting
     m_vsync_enabled = vsync;
 
-    // Create a DirectX graphics interface factory.
-    ComPtr<IDXGIFactory> factory;
-    RETURN_FAIL_IF_FAILED(CreateDXGIFactory(IID_PPV_ARGS(&factory)));
+    LoadPipeline();
 
     // Use the factory to create an adapter for the primary graphics interface (video card).
     ComPtr<IDXGIAdapter> adapter;
@@ -118,19 +116,19 @@ HRESULT D3D11Engine::D3D11API::Init(int screen_width, int screen_height, bool vs
     unsigned int flags = 0;
 
 #if defined(_DEBUG)
-    flags |= D3D11_CREATE_DEVICE_DEBUG;
+    flags |= D3D12_CREATE_DEVICE_DEBUG;
 #endif
 
     // Create the swap chain, Direct3D device, and Direct3D device context.
     RETURN_FAIL_IF_FAILED(
-        D3D11CreateDeviceAndSwapChain(
+        D3D12CreateDeviceAndSwapChain(
             nullptr,
             D3D_DRIVER_TYPE_HARDWARE,
             nullptr,
             flags,
             &featureLevel,
             1,
-            D3D11_SDK_VERSION,
+            D3D12_SDK_VERSION,
             &swapChainDesc,
             &m_swapChain,
             &m_device,
@@ -139,14 +137,14 @@ HRESULT D3D11Engine::D3D11API::Init(int screen_width, int screen_height, bool vs
 
 
     // Get the pointer to the back buffer.
-    ComPtr<ID3D11Texture2D> backBufferPtr;
-    RETURN_FAIL_IF_FAILED(m_swapChain->GetBuffer(0, __uuidof(ID3D11Texture2D), (LPVOID*)&backBufferPtr));
+    ComPtr<ID3D12Texture2D> backBufferPtr;
+    RETURN_FAIL_IF_FAILED(m_swapChain->GetBuffer(0, __uuidof(ID3D12Texture2D), (LPVOID*)&backBufferPtr));
 
     // Create the render target view with the back buffer pointer.
     RETURN_FAIL_IF_FAILED(m_device->CreateRenderTargetView(backBufferPtr.Get(), nullptr, &m_renderTargetView));
 
     // Initialize the description of the depth buffer.
-    D3D11_TEXTURE2D_DESC depthBufferDesc;
+    D3D12_TEXTURE2D_DESC depthBufferDesc;
     ZeroMemory(&depthBufferDesc, sizeof(depthBufferDesc));
 
     // Set up the description of the depth buffer.
@@ -157,8 +155,8 @@ HRESULT D3D11Engine::D3D11API::Init(int screen_width, int screen_height, bool vs
     depthBufferDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
     depthBufferDesc.SampleDesc.Count = 1;
     depthBufferDesc.SampleDesc.Quality = 0;
-    depthBufferDesc.Usage = D3D11_USAGE_DEFAULT;
-    depthBufferDesc.BindFlags = D3D11_BIND_DEPTH_STENCIL;
+    depthBufferDesc.Usage = D3D12_USAGE_DEFAULT;
+    depthBufferDesc.BindFlags = D3D12_BIND_DEPTH_STENCIL;
     depthBufferDesc.CPUAccessFlags = 0;
     depthBufferDesc.MiscFlags = 0;
 
@@ -166,29 +164,29 @@ HRESULT D3D11Engine::D3D11API::Init(int screen_width, int screen_height, bool vs
     RETURN_FAIL_IF_FAILED(m_device->CreateTexture2D(&depthBufferDesc, nullptr, &m_depthStencilBuffer))
 
     // Initialize the description of the stencil state.
-    D3D11_DEPTH_STENCIL_DESC depthStencilDesc;
+    D3D12_DEPTH_STENCIL_DESC depthStencilDesc;
     ZeroMemory(&depthStencilDesc, sizeof(depthStencilDesc));
 
     // Set up the description of the stencil state.
     depthStencilDesc.DepthEnable = true;
-    depthStencilDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
-    depthStencilDesc.DepthFunc = D3D11_COMPARISON_LESS;
+    depthStencilDesc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+    depthStencilDesc.DepthFunc = D3D12_COMPARISON_LESS;
 
     depthStencilDesc.StencilEnable = true;
     depthStencilDesc.StencilReadMask = 0xFF;
     depthStencilDesc.StencilWriteMask = 0xFF;
 
     // Stencil operations if pixel is front-facing.
-    depthStencilDesc.FrontFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    depthStencilDesc.FrontFace.StencilDepthFailOp = D3D11_STENCIL_OP_INCR;
-    depthStencilDesc.FrontFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    depthStencilDesc.FrontFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+    depthStencilDesc.FrontFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+    depthStencilDesc.FrontFace.StencilDepthFailOp = D3D12_STENCIL_OP_INCR;
+    depthStencilDesc.FrontFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+    depthStencilDesc.FrontFace.StencilFunc = D3D12_COMPARISON_ALWAYS;
 
     // Stencil operations if pixel is back-facing.
-    depthStencilDesc.BackFace.StencilFailOp = D3D11_STENCIL_OP_KEEP;
-    depthStencilDesc.BackFace.StencilDepthFailOp = D3D11_STENCIL_OP_DECR;
-    depthStencilDesc.BackFace.StencilPassOp = D3D11_STENCIL_OP_KEEP;
-    depthStencilDesc.BackFace.StencilFunc = D3D11_COMPARISON_ALWAYS;
+    depthStencilDesc.BackFace.StencilFailOp = D3D12_STENCIL_OP_KEEP;
+    depthStencilDesc.BackFace.StencilDepthFailOp = D3D12_STENCIL_OP_DECR;
+    depthStencilDesc.BackFace.StencilPassOp = D3D12_STENCIL_OP_KEEP;
+    depthStencilDesc.BackFace.StencilFunc = D3D12_COMPARISON_ALWAYS;
 
     // Create the depth stencil state.
     RETURN_FAIL_IF_FAILED(m_device->CreateDepthStencilState(&depthStencilDesc, &m_depthStencilState))
@@ -197,12 +195,12 @@ HRESULT D3D11Engine::D3D11API::Init(int screen_width, int screen_height, bool vs
     m_deviceContext->OMSetDepthStencilState(m_depthStencilState.Get(), 1);
 
     // Initialize the depth stencil view.
-    D3D11_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
+    D3D12_DEPTH_STENCIL_VIEW_DESC depthStencilViewDesc;
     ZeroMemory(&depthStencilViewDesc, sizeof(depthStencilViewDesc));
 
     // Set up the depth stencil view description.
     depthStencilViewDesc.Format = DXGI_FORMAT_D24_UNORM_S8_UINT;
-    depthStencilViewDesc.ViewDimension = D3D11_DSV_DIMENSION_TEXTURE2D;
+    depthStencilViewDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
     depthStencilViewDesc.Texture2D.MipSlice = 0;
 
     // Create the depth stencil view.
@@ -212,13 +210,13 @@ HRESULT D3D11Engine::D3D11API::Init(int screen_width, int screen_height, bool vs
     m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
 
     // Setup the raster description which will determine how and what polygons will be drawn.
-    D3D11_RASTERIZER_DESC rasterDesc;
+    D3D12_RASTERIZER_DESC rasterDesc;
     rasterDesc.AntialiasedLineEnable = false;
-    rasterDesc.CullMode = D3D11_CULL_BACK;
+    rasterDesc.CullMode = D3D12_CULL_BACK;
     rasterDesc.DepthBias = 0;
     rasterDesc.DepthBiasClamp = 0.0f;
     rasterDesc.DepthClipEnable = true;
-    rasterDesc.FillMode = D3D11_FILL_SOLID;
+    rasterDesc.FillMode = D3D12_FILL_SOLID;
     rasterDesc.FrontCounterClockwise = false;
     rasterDesc.MultisampleEnable = false;
     rasterDesc.ScissorEnable = false;
@@ -257,10 +255,10 @@ HRESULT D3D11Engine::D3D11API::Init(int screen_width, int screen_height, bool vs
     return S_OK;
 }
 
-void D3D11Engine::D3D11API::Update() {
+void D3D12Engine::D3D12API::Update() {
 }
 
-HRESULT D3D11Engine::D3D11API::Shutdown() {
+HRESULT D3D12Engine::D3D12API::Shutdown() {
     // Before shutting down set to windowed mode or when you release the swap chain it will throw an exception.
     if(m_swapChain)
     {
@@ -269,7 +267,98 @@ HRESULT D3D11Engine::D3D11API::Shutdown() {
     return S_OK;
 }
 
-void D3D11Engine::D3D11API::BeginScene(float red, float green, float blue, float alpha) {
+HRESULT D3D12Engine::D3D12API::LoadPipeline() {
+    UINT dxgiFactoryFlags = 0;
+
+#if defined(_DEBUG)
+    // Enable the debug layer (requires the Graphics Tools "optional feature").
+    // NOTE: Enabling the debug layer after device creation will invalidate the active device.
+    {
+        ComPtr<ID3D12Debug> debugController;
+        if (SUCCEEDED(D3D12GetDebugInterface(IID_PPV_ARGS(&debugController))))
+        {
+            debugController->EnableDebugLayer();
+
+            // Enable additional debug layers.
+            dxgiFactoryFlags |= DXGI_CREATE_FACTORY_DEBUG;
+        }
+    }
+#endif
+
+    // Create a DirectX graphics interface factory.
+    ComPtr<IDXGIFactory4> factory;
+    ThrowIfFailed(CreateDXGIFactory2(dxgiFactoryFlags, IID_PPV_ARGS(&factory)));
+
+    if (m_useWarpDevice)
+    {
+        ComPtr<IDXGIAdapter> warpAdapter;
+        ThrowIfFailed(factory->EnumWarpAdapter(IID_PPV_ARGS(&warpAdapter)));
+
+        ThrowIfFailed(D3D12CreateDevice(
+            warpAdapter.Get(),
+            D3D_FEATURE_LEVEL_12_2,
+            IID_PPV_ARGS(&m_device)
+        ));
+    }
+    else
+    {
+        ComPtr<IDXGIAdapter1> hardwareAdapter;
+        GetHardwareAdapter(factory.Get(), &hardwareAdapter);
+
+        ThrowIfFailed(D3D12CreateDevice(
+            hardwareAdapter.Get(),
+            D3D_FEATURE_LEVEL_12_2,
+            IID_PPV_ARGS(&m_device)
+        ));
+    }
+
+    // Describe and create the command queue.
+    D3D12_COMMAND_QUEUE_DESC queueDesc = {};
+    queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+    queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
+
+    ThrowIfFailed(m_device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&g_CommandQueue)));
+
+    // Describe and create the swap chain.
+    DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
+    swapChainDesc.BufferCount = FrameCount;
+    swapChainDesc.Width = g_ClientWidth;
+    swapChainDesc.Height = g_ClientHeight;
+    swapChainDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
+    swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
+    swapChainDesc.SampleDesc.Count = 1;
+
+    ThrowIfFailed(factory->CreateSwapChainForHwnd(
+        m_commandQueue.Get(),        // Swap chain needs the queue so that it can force a flush on it.
+        Window::getWindowHandleHWND(),
+        &swapChainDesc,
+        nullptr,
+        nullptr,
+        &m_swapChain
+    ));
+
+    ThrowIfFailed(factory->MakeWindowAssociation(Window::getWindowHandleHWND(), DXGI_MWA_NO_ALT_ENTER));
+
+    ThrowIfFailed(swapChain.As(&m_swapChain));
+    m_currentBackBufferIndex = m_swapChain->GetCurrentBackBufferIndex();
+
+    // Create descriptor heaps.
+    {
+        // Describe and create a render target view (RTV) descriptor heap.
+        D3D12_DESCRIPTOR_HEAP_DESC rtvHeapDesc = {};
+        rtvHeapDesc.NumDescriptors = FrameCount;
+        rtvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        rtvHeapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+        ThrowIfFailed(m_device->CreateDescriptorHeap(&rtvHeapDesc, IID_PPV_ARGS(&m_rtvHeap)));
+
+        m_rtvDescriptorSize = m_device->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+    }
+
+
+}
+
+void D3D12Engine::D3D12API::BeginScene(float red, float green, float blue, float alpha) {
     // Setup the color to clear the buffer to.
     float color[4] = { red, green, blue, alpha };
 
@@ -277,10 +366,10 @@ void D3D11Engine::D3D11API::BeginScene(float red, float green, float blue, float
     m_deviceContext->ClearRenderTargetView(m_renderTargetView.Get(), color);
 
     // Clear the depth buffer.
-    m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D11_CLEAR_DEPTH, 1.0f, 0);
+    m_deviceContext->ClearDepthStencilView(m_depthStencilView.Get(), D3D12_CLEAR_DEPTH, 1.0f, 0);
 }
 
-void D3D11Engine::D3D11API::EndScene()
+void D3D12Engine::D3D12API::EndScene()
 {
     // Present the back buffer to the screen since rendering is complete.
     if(m_vsync_enabled)
@@ -295,43 +384,43 @@ void D3D11Engine::D3D11API::EndScene()
     }
 }
 
-ID3D11Device* D3D11Engine::D3D11API::GetDevice()
+ID3D12Device* D3D12Engine::D3D12API::GetDevice()
 {
     return m_device.Get();
 }
 
 
-ID3D11DeviceContext* D3D11Engine::D3D11API::GetDeviceContext()
+ID3D12DeviceContext* D3D12Engine::D3D12API::GetDeviceContext()
 {
     return m_deviceContext.Get();
 }
 
-void D3D11Engine::D3D11API::GetProjectionMatrix(XMMATRIX& projectionMatrix) const {
+void D3D12Engine::D3D12API::GetProjectionMatrix(XMMATRIX& projectionMatrix) const {
     projectionMatrix = m_projectionMatrix;
 }
 
 
-void D3D11Engine::D3D11API::GetWorldMatrix(XMMATRIX& worldMatrix) const {
+void D3D12Engine::D3D12API::GetWorldMatrix(XMMATRIX& worldMatrix) const {
     worldMatrix = m_worldMatrix;
 }
 
 
-void D3D11Engine::D3D11API::GetOrthoMatrix(XMMATRIX& orthoMatrix) const {
+void D3D12Engine::D3D12API::GetOrthoMatrix(XMMATRIX& orthoMatrix) const {
     orthoMatrix = m_orthoMatrix;
 }
 
-void D3D11Engine::D3D11API::GetVideoCardInfo(std::wstring& card_name, int& memory) const {
+void D3D12Engine::D3D12API::GetVideoCardInfo(std::wstring& card_name, int& memory) const {
     card_name = m_videoCardDescription;
     memory = m_videoCardMemory;
 }
 
-void D3D11Engine::D3D11API::SetBackBufferRenderTarget() {
+void D3D12Engine::D3D12API::SetBackBufferRenderTarget() {
     // Bind the render target view and depth stencil buffer to the output render pipeline.
     m_deviceContext->OMSetRenderTargets(1, m_renderTargetView.GetAddressOf(), m_depthStencilView.Get());
 }
 
 
-void D3D11Engine::D3D11API::ResetViewport() {
+void D3D12Engine::D3D12API::ResetViewport() {
     // Set the viewport.
     m_deviceContext->RSSetViewports(1, &m_viewport);
 }

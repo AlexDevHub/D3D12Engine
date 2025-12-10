@@ -18,11 +18,16 @@
 #include <string>
 #include <memory>
 
+// DirectX 12 specific headers.
+#include <d3d12.h>
+#include <dxgi1_6.h>
 #include <directxmath.h>
-#include <d3d11.h>
 #include <d3dcompiler.h>
 
-#pragma comment(lib, "d3d11.lib")
+// D3D12 extension library.
+#include <d3dx12.h>
+
+#pragma comment(lib, "d3d12.lib")
 #pragma comment(lib, "dxgi.lib")
 #pragma comment(lib, "d3dcompiler.lib")
 

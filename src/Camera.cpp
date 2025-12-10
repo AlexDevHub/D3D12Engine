@@ -4,7 +4,7 @@
 
 #include "Camera.h"
 
-namespace D3D11Engine {
+namespace D3D12Engine {
 void Camera::SetPosition(float x, float y, float z) {
     m_positionX = x;
     m_positionY = y;
@@ -76,4 +76,4 @@ void Camera::GetViewMatrix(XMMATRIX &view_matrix) const {
     view_matrix = m_viewMatrix;
 
 }
-} // D3D11Engine
+} // D3D12Engine

@@ -3,7 +3,7 @@
 #include "Utils/Error.h"
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, PSTR pScmdline, int iCmdshow) {
-    auto app = std::make_unique<D3D11Engine::Application>();
+    auto app = std::make_unique<D3D12Engine::Application>();
     RETURN_IF_FAILED(app->Init())
 
     app->Update();

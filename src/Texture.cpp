@@ -5,9 +5,9 @@
 #include "Texture.h"
 
 #define STB_IMAGE_IMPLEMENTATION
-#include "stb_image.h"
+#include "STB/stb_image.h"
 
-namespace D3D11Engine {
+namespace D3D12Engine {
 Texture::~Texture() {
     if (m_targaData) {
         stbi_image_free(m_targaData);
@@ -15,12 +15,12 @@ Texture::~Texture() {
     }
 }
 
-HRESULT Texture::Initialize(ID3D11Device *device, ID3D11DeviceContext *device_context, const std::string &filename) {
+HRESULT Texture::Initialize(ID3D12Device *device, ID3D12DeviceContext *device_context, const std::string &filename) {
     // Load the targa image data into memory.
     RETURN_FAIL_IF_FAILED(LoadTarga32Bit(filename))
 
     // Setup the description of the texture.
-    D3D11_TEXTURE2D_DESC textureDesc;
+    D3D12_TEXTURE2D_DESC textureDesc;
     textureDesc.Height = m_height;
     textureDesc.Width = m_width;
     textureDesc.MipLevels = 0;
@@ -28,10 +28,10 @@ HRESULT Texture::Initialize(ID3D11Device *device, ID3D11DeviceContext *device_co
     textureDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
     textureDesc.SampleDesc.Count = 1;
     textureDesc.SampleDesc.Quality = 0;
-    textureDesc.Usage = D3D11_USAGE_DEFAULT;
-    textureDesc.BindFlags = D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET;
+    textureDesc.Usage = D3D12_USAGE_DEFAULT;
+    textureDesc.BindFlags = D3D12_BIND_SHADER_RESOURCE | D3D12_BIND_RENDER_TARGET;
     textureDesc.CPUAccessFlags = 0;
-    textureDesc.MiscFlags = D3D11_RESOURCE_MISC_GENERATE_MIPS;
+    textureDesc.MiscFlags = D3D12_RESOURCE_MISC_GENERATE_MIPS;
 
     // Create the empty texture.
     RETURN_FAIL_IF_FAILED(device->CreateTexture2D(&textureDesc, nullptr, &m_texture))
@@ -43,9 +43,9 @@ HRESULT Texture::Initialize(ID3D11Device *device, ID3D11DeviceContext *device_co
     device_context->UpdateSubresource(m_texture.Get(), 0, nullptr, m_targaData, rowPitch, 0);
 
     // Setup the shader resource view description.
-    D3D11_SHADER_RESOURCE_VIEW_DESC srvDesc;
+    D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc;
     srvDesc.Format = textureDesc.Format;
-    srvDesc.ViewDimension = D3D11_SRV_DIMENSION_TEXTURE2D;
+    srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
     srvDesc.Texture2D.MostDetailedMip = 0;
     srvDesc.Texture2D.MipLevels = -1;
 
@@ -58,7 +58,7 @@ HRESULT Texture::Initialize(ID3D11Device *device, ID3D11DeviceContext *device_co
     return S_OK;
 }
 
-ID3D11ShaderResourceView* Texture::GetTexture() {
+ID3D12ShaderResourceView* Texture::GetTexture() {
     return m_textureView.Get();
 }
 
@@ -78,4 +78,4 @@ HRESULT Texture::LoadTarga32Bit(const std::string &filename) {
 
     return S_OK;
 }
-} // D3D11Engine
+} // D3D12Engine

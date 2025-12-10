@@ -8,7 +8,7 @@
 #include <string>
 #include "System.h"
 
-namespace D3D11Engine {
+namespace D3D12Engine {
 class Window : public System{
 public:
     Window(const int width, const int height, std::string&& window_name);
@@ -30,7 +30,7 @@ private:
     std::string m_window_name;
     GLFWwindow *m_window_handle = nullptr;
 };
-} // namespace D3D11Engine
+} // namespace D3D12Engine
 
 
 

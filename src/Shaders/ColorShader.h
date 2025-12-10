@@ -11,21 +11,21 @@
 
 using namespace DirectX;
 
-namespace D3D11Engine {
+namespace D3D12Engine {
 class ColorShader : Shader{
 public:
     ColorShader() = default;
     ColorShader(const ColorShader&) = default;
     ~ColorShader() = default;
 
-    HRESULT Initialize(ID3D11Device* device, HWND hwnd);
-    HRESULT Render(ID3D11DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX);
+    HRESULT Initialize(ID3D12Device* device, HWND hwnd);
+    HRESULT Render(ID3D12DeviceContext*, int, XMMATRIX, XMMATRIX, XMMATRIX);
 
 private:
-    HRESULT SetShaderParameters(ID3D11DeviceContext *device_context, XMMATRIX world_matrix, XMMATRIX view_matrix, XMMATRIX projection_matrix) override;
-    void RenderShader(ID3D11DeviceContext *device_context, int index_count) override;
+    HRESULT SetShaderParameters(ID3D12DeviceContext *device_context, XMMATRIX world_matrix, XMMATRIX view_matrix, XMMATRIX projection_matrix) override;
+    void RenderShader(ID3D12DeviceContext *device_context, int index_count) override;
 
 };
-} // D3D11Engine
+} // D3D12Engine
 
 #endif //COLORSHADER_H

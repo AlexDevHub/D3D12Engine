@@ -5,7 +5,7 @@
 #ifndef CUBEDATA_H
 #define CUBEDATA_H
 #include <iterator>
-namespace D3D11Engine::CubeData {
+namespace D3D12Engine::CubeData {
 // pos.x, pos.y, pos.z, nor.x, nor.y, nor.z, tex.u, tex.v, col.r, col.g, col.b,
 inline float vertex_data[] =
 {
